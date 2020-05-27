@@ -1,0 +1,172 @@
+---
+title: "기초통계"
+author: "June"
+date: '2020 4 08 '
+output:
+  html_document: default
+  pdf_document: default
+---
+
+(@) ***상관행렬***
+
++ 상관 행렬 
+
+```{r code1, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+
+colnames(M_ALL)
+mall_01 <- M_ALL[,c(1,3,7,8,9,17,19,20)]
+
+library(dplyr)
+
+mall_01 <- mall_01 %>% 
+  filter(is.na(SESS_SEQ) == 'FALSE')
+
+colnames(mall_01)
+mall_02 <- mall_01 %>% group_by(CLNT_ID) %>% 
+  summarise(sum_PD_BUY_TOT = sum(PD_BUY_TOT),
+            sum_PD_BUY_CT = sum(PD_BUY_CT),            
+            sum_PD_BUY_AM = sum(PD_BUY_AM),            
+            sum_HITS_SEQ = sum(HITS_SEQ),
+            sum_TOT_PAG_VIEW_CT = sum(TOT_PAG_VIEW_CT),
+            sum_TOT_SESS_HR_V = sum(TOT_SESS_HR_V))
+
+# CLNT_ID 변수 제거거
+mall_02 <- mall_02[-1]
+
+cor_01 <- cor(mall_02)
+cor_01 <- round(cor_01, 4)
+cor_01
+```
+
++ 상관 행렬 Upper Triangle
+
+```{r code2, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+upper <- cor_01
+upper[ upper.tri(cor_01) ] <- ""
+
+( upper <- as.data.frame(upper) )
+
+```
+
++ 상관 행렬 CorrPlot
+
+```{r code3, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(corrplot)
+
+library(RColorBrewer)
+
+cp_01 <- corrplot(cor_01, type = "upper", 
+                  order = "hclust", tl.col = "black",tl.srt = 45,
+                  col=brewer.pal(n=8, name="RdYlBu"))
+
+# 고객아이디로 그룹화 후, 각 변수들의 합(sum)으로 상관관계를 분석해 보았을 때, 
+# 총 매출액의 합(sum_PD_BUY_TOT)과 클릭수 합계(sum_HIT_SEQ), 총 페이지 시청 수 합계(sum_TOT_PAG_VIEW_CT) 가 
+# 0.25 이상의 상관관계를 보인다.
+
+```
+
+
++ 상관 행렬 (correlogram)
+
+
+
+(@) ***상관 계수***
+
+
++ sum_PD_BUY_TOT & sum_HITS_SEQ
+
+
+```{r code4, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(ggpubr)
+
+g1 <- mall_02 %>%
+    sample_frac(0.0005) %>%
+    ggscatter(x = "sum_PD_BUY_TOT",
+              y = "sum_HITS_SEQ",
+              add = "reg.line",
+              color = "#00FFFF",size = 2, shape = 19, alpha = 0.5,
+              conf.int = TRUE,
+              cor.coef = TRUE,
+              cor.coeff.args = list(method = "pearson",
+                                    label.x = 3, label.sep = "\n"),
+              xlab = "sum_PD_BUY_TOT",
+              ylab = "sum_HITS_SEQ",
+              add.params = list(color = "red",
+                                fill = "black"))
+
+g1
+
+```
+
+
++ sum_PD_BUY_TOT & sum_TOT_PAG_VIEW_CT
+
+
+```{r code5, echo=TRUE, message=FALSE, warning=FALSE}
+
+g2 <- mall_02 %>%
+  sample_frac(0.0005) %>%
+  ggscatter(x = "sum_PD_BUY_TOT",
+            y = "sum_TOT_PAG_VIEW_CT",
+            add = "reg.line",
+            color = "#00FFFF",size = 2, shape = 19, alpha = 0.5,
+            conf.int = TRUE,
+            cor.coef = TRUE,
+            cor.coeff.args = list(method = "pearson",
+                                  label.x = 3, label.sep = "\n"),
+            xlab = "sum_PD_BUY_TOT",
+            ylab = "sum_TOT_PAG_VIEW_CT",
+            add.params = list(color = "red",
+                              fill = "black"))
+g2
+
+```
+
+
++ sum_PD_BUY_TOT & sum_TOT_PAG_VIEW_CT
+
+```{r code6, echo=TRUE, message=FALSE, warning=FALSE}
+
+g3 <- mall_02 %>%
+  sample_frac(0.0005) %>%
+  ggscatter(x = "sum_PD_BUY_TOT",
+            y = "sum_TOT_SESS_HR_V",
+            add = "reg.line",
+            color = "#00FFFF",size = 2, shape = 19, alpha = 0.5,
+            conf.int = TRUE,
+            cor.coef = TRUE,
+            cor.coeff.args = list(method = "pearson",
+                                  label.x = 3, label.sep = "\n"),
+            xlab = "sum_PD_BUY_TOT",
+            ylab = "sum_TOT_SESS_HR_V",
+            add.params = list(color = "red",
+                              fill = "black"))
+
+g3
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

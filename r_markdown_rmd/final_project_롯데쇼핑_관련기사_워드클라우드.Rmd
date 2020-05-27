@@ -1,0 +1,60 @@
+---
+title: "롯데쇼핑 관련기사 워드클라우드"
+author: "June"
+date: '2020 4 13 '
+output: html_document
+---
+
+
+(@) ***데이터 가공***
+
++ 데이터 불러오기
+
+```{r code1, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(readr)
+lotte <- read.csv("C:/app/R/New_R_workspace/롯데/lotte.csv")
+# View(lotte)
+```
+
++ 데이터 전처리
+
+```{r code2, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 분석제외 변수 제거
+lotte <- lotte[-1]
+colnames(lotte)
+```
+
+
+(@) ***워드클라우드 시각화***
+
+
++ 워드클라우드 설정 및 시각화
+
+```{r code3, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(RColorBrewer)
+pal <- brewer.pal(8, "Dark2")
+set.seed(1234)
+library(wordcloud2)
+library(wordcloud)
+
+wordcloud(words = lotte$키워드,
+          freq = lotte$키워드.빈도수,
+          min.freq = 5,
+          max.words = 300,
+          random.order = F,
+          rot.per = .1,
+          scale = c(6,0.2),
+          colors = pal)
+
+# ----------------------------------------------------------------
+# 롯데쇼핑과 관련한 기사를 워드클라우드로 시각화 하였다.
+# 백화점과 오프라인이 가장 눈에 띄게 높은 빈도를 가지고 있다.
+# 다음으로는 경쟁사인 신세계, 이베이코리아, 옥션, G9등의 브랜드가 보인다. 
+# 그 외에, 경영 관련 용어인 주주총회, 영업손시르 구조조정, 사업부별 운영전략실행,
+# 구조조정 등의 단어들이 보여지고 있다.
+# 주목할만한 단어로는 건강식품, 로컬채소가 있다.
+# ----------------------------------------------------------------
+```

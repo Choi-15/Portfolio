@@ -1,0 +1,397 @@
+---
+title: "기초통계"
+author: "June"
+date: '2020 4 08 '
+output: html_document
+---
+(@) ***기초통계량***
+
++ 양적 변수 기초통계량
+
+```{r code1, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+
+#   1) Pastec 패키지
+library(pastecs)
+
+
+test_fin <- na.omit(M_ALL)
+# colnames(test_fin)
+
+b1_stat <- stat.desc(test_fin)[,c(3,7,8,9,12,17,19,20)]
+
+round(b1_stat, 2)
+
+```
+
+
+
+```{r code2, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+#   2) summary 함수
+b2_stat <- summary(test_fin[,c(3,7,8,9,12,17,19,20)])
+
+b2_stat
+
+```
+
+
+
+(@) ***개별변수 특성***
+
+
++ HITS_SEQ : Numeric
+
+```{r code3,  include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# (1) 확률밀도 함수
+
+# qplot(M_ALL$HITS_SEQ)
+# hist(test_fin$HITS_SEQ)
+hist(test_fin$HITS_SEQ, freq = F, breaks = 100)
+lines(density(test_fin$HITS_SEQ), col = 'red', lwd = 2)
+
+# (2) 왜도 & 첨도
+library(e1071)
+skewness(test_fin$HITS_SEQ) # 1.93188
+kurtosis(test_fin$HITS_SEQ) # 6.874405
+
+#--------------------------------------------------------------------
+# HITS_SEQ 변수는 왜도는 1.93188, 첨도는 6.874405이다.
+# 왼쪽으로 치우치고, 오른쪽 꼬리가 긴 모양의 확률밀도 그래프를 갖고있다.
+#--------------------------------------------------------------------
+
+```
+
+
++ PD_BUY_AM : Numeric
+
+```{r code4, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# (1) 확률밀도 함수
+
+# hist(test_fin$PD_BUY_AM)
+hist(test_fin$PD_BUY_AM, freq = F, breaks = 1000000)
+lines(density(test_fin$PD_BUY_AM), col = 'red', lwd = 2)
+
+# (2) 왜도 & 첨도
+skewness(test_fin$PD_BUY_AM) # 15.07033
+kurtosis(test_fin$PD_BUY_AM) # 559.9662
+
+# (3) 정규성:
+# shapiro.test(test_fin$PD_BUY_AM) # 실행 不可
+
+
+#--------------------------------------------------------------------
+# PD_BUY_AM 변수는 왜도는 15.07033, 첨도는 559.9662이다.
+# 극단적으로 왼쪽으로 치우쳐져 있고, 첨도도 굉장히 높은 모양의 확률밀도 그래프를 갖고있다.
+#--------------------------------------------------------------------
+
+```
+
+
++ PD_BUY_CT : Numeric
+
+```{r code5, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# (1) 확률밀도 함수
+
+# qplot(M_ALL$PD_BUY_CT)
+# hist(test_fin$PD_BUY_CT)
+hist(test_fin$PD_BUY_CT, freq = F, breaks = 10)
+lines(density(test_fin$PD_BUY_CT), col = 'red', lwd = 2)
+
+# (2) 왜도 & 첨도
+skewness(test_fin$PD_BUY_CT) # 186.1892
+kurtosis(test_fin$PD_BUY_CT) # 59083.43
+
+#--------------------------------------------------------------------
+# PD_BUY_CT 변수는 왜도는 186.1892, 첨도는 59083.43이다.
+# 극단적으로 왼쪽으로 치우쳐져 있고, 첨도도 굉장히 높은 모양의 확률밀도 그래프를 갖고있다.
+#--------------------------------------------------------------------
+
+```
+
+
++ PD_BUY_TOT : Numeric
+
+```{r code6, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# (1) 확률밀도 함수
+
+# qplot(M_ALL$PD_BUY_TOT)
+# hist(test_fin$PD_BUY_TOT)
+hist(test_fin$PD_BUY_TOT, freq = F, breaks = 1000)
+lines(density(test_fin$PD_BUY_TOT), col = 'red', lwd = 2)
+
+# (2) 왜도 & 첨도
+skewness(test_fin$PD_BUY_TOT) # 15.79321
+kurtosis(test_fin$PD_BUY_TOT) # 637.4551
+
+# (3) 정규성:
+# shapiro.test(test_fin$PD_BUY_TOT) # 실행 不可
+
+#--------------------------------------------------------------------
+# PD_BUY_CT 변수는 왜도는 15.79321, 첨도는 637.4551 이다.
+# 극단적으로 왼쪽으로 치우쳐져 있고, 첨도도 굉장히 높은 모양의 확률밀도 그래프를 갖고있다.
+#--------------------------------------------------------------------
+
+```
+
+
++ CLNT_AGE : Numeric
+
+```{r code7, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# (1) 확률밀도 함수
+
+# qplot(M_ALL$CLNT_AGE)
+# hist(test_fin$CLNT_AGE)
+hist(test_fin$CLNT_AGE, freq = F, breaks = 100)
+lines(density(test_fin$CLNT_AGE), col = 'red', lwd = 2)
+
+# (2) 왜도 & 첨도
+skewness(test_fin$CLNT_AGE) # 0.2857157
+kurtosis(test_fin$CLNT_AGE) # 3.740531
+
+# (3) 정규성:
+# shapiro.test(test_fin$CLNT_AGE) # 실행 不可
+
+#--------------------------------------------------------------------
+# CLNT_AGE 변수는 왜도는 0.2857157, 첨도는 3.740531 이다.
+# 30, 40대에 가장 높은 확률밀도를 갖고있다.
+#--------------------------------------------------------------------
+
+```
+
+
++ SESS_SEQ : Numeric
+
+```{r code8, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# (1) 확률밀도 함수
+
+# qplot(M_ALL$SESS_SEQ)
+# hist(test_fin$SESS_SEQ)
+hist(test_fin$SESS_SEQ, freq = F, breaks = 100)
+lines(density(test_fin$SESS_SEQ), col = 'red', lwd = 2)
+
+# (2) 왜도 & 첨도
+skewness(test_fin$SESS_SEQ) # 3.134827
+kurtosis(test_fin$SESS_SEQ) # 17.92146
+
+# (3) 정규성:
+# shapiro.test(test_fin$SESS_SEQ) # 실행 不可
+
+#--------------------------------------------------------------------
+# SESS_SEQ 변수는 왜도는 3.134827, 첨도는 17.92146 이다.
+# 왼쪽으로 치우쳐져 있고, 첨도도 굉장히 높은 모양의 확률밀도 그래프를 갖고있다.
+#--------------------------------------------------------------------
+
+```
+
+
++ TOT_PAG_VIEW_CT : Numeric
+
+```{r code9, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+
+# (1) 확률밀도 함수
+
+# qplot(M_ALL$TOT_PAG_VIEW_CT)
+# hist(test_fin$TOT_PAG_VIEW_CT)
+hist(test_fin$TOT_PAG_VIEW_CT, freq = F, breaks = 100)
+lines(density(test_fin$TOT_PAG_VIEW_CT), col = 'red', lwd = 2)
+
+# (2) 왜도 & 첨도
+skewness(test_fin$TOT_PAG_VIEW_CT) # 1.690908
+kurtosis(test_fin$TOT_PAG_VIEW_CT) # 5.633332
+
+# (3) 정규성:
+# shapiro.test(test_fin$TOT_PAG_VIEW_CT) # 실행 不可
+
+#--------------------------------------------------------------------
+# TOT_PAG_VIEW_CT 변수는 왜도는 1.690908, 첨도는 5.633332 이다.
+# 왼쪽으로 치우쳐져 있고, 오른쪽으로 갈수록 낮아지다가 끝에 조금 올라간 모양의 확률밀도 그래프를 갖고있다.
+#--------------------------------------------------------------------
+
+```
+
+
++ TOT_SESS_HR_V : Numeric
+
+```{r code10, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# (1) 확률밀도 함수
+
+# qplot(M_ALL$TOT_SESS_HR_V)
+# hist(test_fin$TOT_SESS_HR_V)
+hist(test_fin$TOT_SESS_HR_V, freq = F, breaks = 100)
+lines(density(test_fin$TOT_SESS_HR_V), col = 'red', lwd = 2)
+
+# (2) 왜도 & 첨도
+skewness(test_fin$TOT_SESS_HR_V) # 3.195901
+kurtosis(test_fin$TOT_SESS_HR_V) # 32.5718
+
+# (3) 정규성:
+# shapiro.test(test_fin$TOT_SESS_HR_V) # 실행 不可
+
+#--------------------------------------------------------------------
+# TOT_SESS_HR_V 변수는 왜도는 1.690908, 첨도는 32.5718 이다.
+# 왼쪽으로 치우쳐져 있고, 오른쪽꼬리가 긴 모양의 확률밀도 그래프를 갖고있다.
+#--------------------------------------------------------------------
+
+```
+
+
+
+(@) ***상관행렬***
+
++ 상관 행렬 
+
+```{r code11, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+library(dplyr)
+mall_01 <- M_ALL[,c(3,7,8,9,17,19,20)]
+
+mall_01 <- mall_01 %>% 
+  filter(is.na(SESS_SEQ) == 'FALSE')
+
+cor_01 <- cor(mall_01)
+cor_01 <- round(cor_01, 4)
+
+```
+
++ 상관 행렬 Upper Triangle
+
+```{r code12, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+upper <- cor_01
+upper[ upper.tri(cor_01) ] <- ""
+
+( upper <- as.data.frame(upper) )
+
+```
+
++ 상관 행렬 CorrPlot
+
+```{r code13, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(corrplot)
+library(RColorBrewer)
+
+cp_01 <- corrplot(cor_01, type = "upper", 
+                  order = "hclust", tl.col = "black",tl.srt = 45,
+                  col=brewer.pal(n=8, name="RdYlBu"))
+
+#--------------------------------------------------------------------
+# 구매 수량, 상품 단가, 총 상품 구매액인 PD_BUY_CT, PD_BUY_AM, PD_BUY_TOT는 서로 0.75 이상의 높은 상관관계를 가지며,
+# 총 페이지 시청수(TOT_PAG_VIEW_CT)와 클릭 수(HIT_SEQ)또한 0.75이상의 높은 상관관계를 갖는다.
+# 총세션시간(TOT_SESS_HR_V)는 클릭 수(HIT_SEQ), 총 페이지 시청수(TOT_PAG_VIEW_CT)와 0.5 이상의 상관관계를 갖는다.
+# 그러나, 각각의 변수는 서로 연관된 변수로 간주하여, 매출 관련 변수인 PD_BUY_TOT와 유의미한 상관관계가 있는 변수는 없다.
+#--------------------------------------------------------------------
+
+```
+
+
++ 상관 행렬 (correlogram)
+
+
+
+(@) ***상관 계수***
+
+# 위의 상관행렬에서 서로 높은 상관관계를 보이는 변수를 추출하여 상관관계를 시각화 해보았다. 
+
++ TOT_PAG_VIEW_CT & TOT_SESS_HR_V
+
+
+```{r code14, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(ggpubr)
+
+g1 <- M_ALL %>%
+    sample_frac(0.0005) %>%
+    ggscatter(x = "TOT_PAG_VIEW_CT",
+              y = "TOT_SESS_HR_V",
+              add = "reg.line",
+              color = "#00FFFF",size = 2, shape = 19, alpha = 0.5,
+              conf.int = TRUE,
+              cor.coef = TRUE,
+              cor.coeff.args = list(method = "pearson",
+                                    label.x = 3, label.sep = "\n"),
+              xlab = "TOT_PAG_VIEW_CT",
+              ylab = "TOT_SESS_HR_V",
+              add.params = list(color = "red",
+                                fill = "black"))
+
+g1
+
+```
+
+
++ HITS_SEQ & TOT_SESS_HR_V
+
+
+```{r code15, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+
+g2 <- M_ALL %>%
+  sample_frac(0.0005) %>%
+  ggscatter(x = "HITS_SEQ",
+            y = "TOT_SESS_HR_V",
+            add = "reg.line",
+            color = "#00FFFF",size = 2, shape = 19, alpha = 0.5,
+            conf.int = TRUE,
+            cor.coef = TRUE,
+            cor.coeff.args = list(method = "pearson",
+                                  label.x = 3, label.sep = "\n"),
+            xlab = "HITS_SEQ",
+            ylab = "TOT_SESS_HR_V",
+            add.params = list(color = "red",
+                              fill = "black"))
+g2
+
+```
+
+
++ HITS_SEQ & TOT_PAG_VIEW_CT
+
+```{r code16, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+g3 <- M_ALL %>%
+  sample_frac(0.0005) %>%
+  ggscatter(x = "HITS_SEQ",
+            y = "TOT_PAG_VIEW_CT",
+            add = "reg.line",
+            color = "#00FFFF",size = 2, shape = 19, alpha = 0.5,
+            conf.int = TRUE,
+            cor.coef = TRUE,
+            cor.coeff.args = list(method = "pearson",
+                                  label.x = 3, label.sep = "\n"),
+            xlab = "HITS_SEQ",
+            ylab = "TOT_PAG_VIEW_CT",
+            add.params = list(color = "red",
+                              fill = "black"))
+
+g3
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

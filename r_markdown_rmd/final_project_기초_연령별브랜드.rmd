@@ -1,0 +1,520 @@
+---
+title: "연령별 선호 브랜드"
+author: "June"
+date: '2020 4 13'
+output: html_document
+---
+
+
+(@) ***변수 추출 및 데이터타입 변환***
+
++ 관련 변수 추출
+
+```{r code1, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+## 연령별 브랜드
+# colnames(M_ALL)
+library(dplyr)
+library(treemap)
+
+attach(M_ALL)
+
+gen_02 <- M_ALL[,c(11,12,10,9)]
+summary(gen_02)
+
+gen_02 <- gen_02 %>%
+    filter(is.na(CLNT_AGE) == 'FALSE')
+
+gen_02$CLNT_AGE <- as.factor(gen_02$CLNT_AGE)
+gen_02$CLNT_GENDER <- as.factor(gen_02$CLNT_GENDER)
+
+```
+
+
+(@) ***시각화***
+
++ 10 대
+
+# 데이터 전처리
+
+```{r code2, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 10대 전체
+
+iu_10 <- gen_02 %>%
+    filter(CLNT_AGE == 10) %>%
+    group_by(PD_BRA_NM2, CLNT_GENDER) %>%
+    summarise( PD_BUY_TOT_sum = sum(PD_BUY_TOT) ) %>%
+    arrange( desc(PD_BUY_TOT_sum) )
+
+
+# 10대 성별 상위 10개 브랜드
+
+a1 <- iu_10 %>% 
+    filter(CLNT_GENDER == "F") %>%
+    head(10)
+
+a2 <- iu_10 %>% 
+    filter(CLNT_GENDER == "M") %>%
+    head(10)
+
+iu_1 <- rbind(a1,a2)   
+
+```
+
+# 10대 성별 상위 10개 브랜드  
+
+```{r code3, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(treemap)
+
+
+iu_1 %>% 
+treemap(
+    # data
+    index=c("CLNT_GENDER","PD_BRA_NM2"),
+    vSize="PD_BUY_TOT_sum",
+    type="index",
+    
+    # Main
+    title="10대 성별 상위 10개 브랜드",
+    palette="Dark2",
+    
+    # Borders:
+    border.col=c("black","white"),              
+    border.lwds=c(4,2),                         
+    
+    # Labels
+    fontsize.title=12,
+    fontsize.labels=10,
+    fontcolor.labels="white",
+    fontface.labels=1,            
+    bg.labels=c("transparent"),              
+    # align.labels=c("left", "top"),                                  
+    overlap.labels=0.5
+    # inflate.labels = T
+) 
+
+```
+
++ 20 대
+
+# 데이터 전처리
+
+```{r code4, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 20대 전체
+iu_20 <- gen_02 %>%
+  filter(CLNT_AGE == 20) %>%
+  group_by(PD_BRA_NM2, CLNT_GENDER) %>%
+  summarise( PD_BUY_TOT_sum = sum(PD_BUY_TOT) ) %>%
+  arrange( desc(PD_BUY_TOT_sum) )
+
+
+# 20대 성별 상위 10개 브랜드
+
+a3 <- iu_20 %>% 
+    filter(CLNT_GENDER == "F") %>%
+    head(10)
+
+a4 <- iu_20 %>% 
+    filter(CLNT_GENDER == "M") %>%
+    head(10)
+
+iu_2 <- rbind(a3,a4)   
+
+```
+
+# 20대 성별 상위 10개 브랜드 
+
+```{r code5, echo=TRUE, message=FALSE, warning=FALSE}
+
+iu_2 %>% 
+treemap(
+    # data
+    index=c("CLNT_GENDER","PD_BRA_NM2"),
+    vSize="PD_BUY_TOT_sum",
+    type="index",
+    
+    # Main
+    title="20대 성별 상위 10개 브랜드 ",
+    palette="Dark2",
+    
+    # Borders:
+    border.col=c("black","white"),              
+    border.lwds=c(4,2),                         
+    
+    # Labels
+    fontsize.title=12,
+    fontsize.labels=10,
+    fontcolor.labels="white",
+    fontface.labels=1,            
+    bg.labels=c("transparent"),              
+    # align.labels=c("left", "top"),                                  
+    overlap.labels=0.5
+    # inflate.labels = T
+) 
+
+```
+
++ 30 대
+
+# 데이터 전처리
+
+```{r code6, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 30대 전체
+iu_30 <- gen_02 %>%
+  filter(CLNT_AGE == 30) %>%
+  group_by(PD_BRA_NM2, CLNT_GENDER) %>%
+  summarise( PD_BUY_TOT_sum = sum(PD_BUY_TOT) ) %>%
+  arrange( desc(PD_BUY_TOT_sum) )
+
+
+# 30대 성별 상위 10개 브랜드
+
+a5 <- iu_30 %>% 
+    filter(CLNT_GENDER == "F") %>%
+    head(10)
+
+a6 <- iu_30 %>% 
+    filter(CLNT_GENDER == "M") %>%
+    head(10)
+
+iu_3 <- rbind(a5,a6)   
+
+```
+
+# 30대 성별 상위 10개 브랜드 
+
+```{r code7, echo=TRUE, message=FALSE, warning=FALSE}
+
+iu_3 %>% 
+treemap(
+    # data
+    index=c("CLNT_GENDER","PD_BRA_NM2"),
+    vSize="PD_BUY_TOT_sum",
+    type="index",
+    
+    # Main
+    title="30대 성별 상위 10개 브랜드 ",
+    palette="Dark2",
+    
+    # Borders:
+    border.col=c("black","white"),              
+    border.lwds=c(4,2),                         
+    
+    # Labels
+    fontsize.title=12,
+    fontsize.labels=10,
+    fontcolor.labels="white",
+    fontface.labels=1,            
+    bg.labels=c("transparent"),              
+    # align.labels=c("left", "top"),                                  
+    overlap.labels=0.5
+    # inflate.labels = T
+) 
+
+```
+
++ 40 대
+
+# 데이터 전처리
+
+```{r code8, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 40 대 전체
+iu_40 <- gen_02 %>%
+  filter(CLNT_AGE == 40) %>%
+  group_by(PD_BRA_NM2, CLNT_GENDER) %>%
+  summarise( PD_BUY_TOT_sum = sum(PD_BUY_TOT) ) %>%
+  arrange( desc(PD_BUY_TOT_sum) )
+
+
+# 40대 성별 상위 10개 브랜드
+
+a7 <- iu_40 %>% 
+    filter(CLNT_GENDER == "F") %>%
+    head(10)
+
+a8 <- iu_40 %>% 
+    filter(CLNT_GENDER == "M") %>%
+    head(10)
+
+iu_4 <- rbind(a7,a8) 
+
+```
+
+# 40대 성별 상위 10개 브랜드 
+
+```{r code9, echo=TRUE, message=FALSE, warning=FALSE}
+
+iu_4 %>% 
+treemap(
+    # data
+    index=c("CLNT_GENDER","PD_BRA_NM2"),
+    vSize="PD_BUY_TOT_sum",
+    type="index",
+    
+    # Main
+    title="40대 성별 상위 10개 브랜드 ",
+    palette="Dark2",
+    
+    # Borders:
+    border.col=c("black","white"),              
+    border.lwds=c(4,2),                         
+    
+    # Labels
+    fontsize.title=12,
+    fontsize.labels=10,
+    fontcolor.labels="white",
+    fontface.labels=1,            
+    bg.labels=c("transparent"),              
+    # align.labels=c("left", "top"),                                  
+    overlap.labels=0.5
+    # inflate.labels = T
+)
+
+```
+
++ 50 대
+
+# 데이터 전처리
+
+```{r code10, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 50 대 전체
+
+iu_50 <- gen_02 %>%
+  filter(CLNT_AGE == 50) %>%
+  group_by(PD_BRA_NM2, CLNT_GENDER) %>%
+  summarise( PD_BUY_TOT_sum = sum(PD_BUY_TOT) ) %>%
+  arrange( desc(PD_BUY_TOT_sum) )
+
+
+# 50대 성별 상위 10개 브랜드
+
+a9 <- iu_50 %>% 
+    filter(CLNT_GENDER == "F") %>%
+    head(10)
+
+a10 <- iu_50 %>% 
+    filter(CLNT_GENDER == "M") %>%
+    head(10)
+
+iu_5 <- rbind(a9,a10) 
+
+```
+
+# 50대 성별 상위 10개 브랜드 
+
+```{r code11, echo=TRUE, message=FALSE, warning=FALSE}
+
+iu_5 %>% 
+treemap(
+    # data
+    index=c("CLNT_GENDER","PD_BRA_NM2"),
+    vSize="PD_BUY_TOT_sum",
+    type="index",
+    
+    # Main
+    title="50대 성별 상위 10개 브랜드 ",
+    palette="Dark2",
+    
+    # Borders:
+    border.col=c("black","white"),              
+    border.lwds=c(4,2),                         
+    
+    # Labels
+    fontsize.title=12,
+    fontsize.labels=10,
+    fontcolor.labels="white",
+    fontface.labels=1,            
+    bg.labels=c("transparent"),              
+    # align.labels=c("left", "top"),                                  
+    overlap.labels=0.5
+    # inflate.labels = T
+)
+
+```
+
++ 60 대
+
+# 데이터 전처리
+
+```{r code12, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 60 대 전체
+iu_60 <- gen_02 %>%
+  filter(CLNT_AGE == 60) %>%
+  group_by(PD_BRA_NM2, CLNT_GENDER) %>%
+  summarise( PD_BUY_TOT_sum = sum(PD_BUY_TOT) ) %>%
+  arrange( desc(PD_BUY_TOT_sum) )
+
+
+# 60대 성별 상위 10개 브랜드
+
+a11 <- iu_60 %>% 
+    filter(CLNT_GENDER == "F") %>%
+    head(10)
+
+a12 <- iu_60 %>% 
+    filter(CLNT_GENDER == "M") %>%
+    head(10)
+
+iu_6 <- rbind(a11,a12) 
+
+```
+
+# 60대 성별 상위 10개 브랜드 
+
+```{r code13, echo=TRUE, message=FALSE, warning=FALSE}
+
+iu_6 %>% 
+treemap(
+    # data
+    index=c("CLNT_GENDER","PD_BRA_NM2"),
+    vSize="PD_BUY_TOT_sum",
+    type="index",
+    
+    # Main
+    title="60대 성별 상위 10개 브랜드 ",
+    palette="Dark2",
+    
+    # Borders:
+    border.col=c("black","white"),              
+    border.lwds=c(4,2),                         
+    
+    # Labels
+    fontsize.title=12,
+    fontsize.labels=10,
+    fontcolor.labels="white",
+    fontface.labels=1,            
+    bg.labels=c("transparent"),              
+    # align.labels=c("left", "top"),                                  
+    overlap.labels=0.5
+    # inflate.labels = T
+)
+
+```
+
++ 70 대
+
+# 데이터 전처리
+
+```{r code14, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 데이터 전처리
+
+iu_70 <- gen_02 %>%
+  filter(CLNT_AGE == 70) %>%
+  group_by(PD_BRA_NM2, CLNT_GENDER) %>%
+  summarise( PD_BUY_TOT_sum = sum(PD_BUY_TOT) ) %>%
+  arrange( desc(PD_BUY_TOT_sum) )
+
+
+# 70대 성별 상위 10개 브랜드
+
+a13 <- iu_70 %>% 
+    filter(CLNT_GENDER == "F") %>%
+    head(10)
+
+a14 <- iu_70 %>% 
+    filter(CLNT_GENDER == "M") %>%
+    head(10)
+
+iu_7 <- rbind(a13,a14) 
+
+```
+
+# 70대 성별 상위 10개 브랜드 
+
+```{r code15, echo=TRUE, message=FALSE, warning=FALSE}
+
+iu_7 %>% 
+treemap(
+    # data
+    index=c("CLNT_GENDER","PD_BRA_NM2"),
+    vSize="PD_BUY_TOT_sum",
+    type="index",
+    
+    # Main
+    title="70대 성별 상위 10개 브랜드 ",
+    palette="Dark2",
+    
+    # Borders:
+    border.col=c("black","white"),              
+    border.lwds=c(4,2),                         
+    
+    # Labels
+    fontsize.title=12,
+    fontsize.labels=10,
+    fontcolor.labels="white",
+    fontface.labels=1,            
+    bg.labels=c("transparent"),              
+    # align.labels=c("left", "top"),                                  
+    overlap.labels=0.5
+    # inflate.labels = T
+)
+
+```
+
++ 80 대
+
+# 데이터 전처리
+
+```{r code16, echo=TRUE, message=FALSE, warning=FALSE}
+
+iu_80 <- gen_02 %>%
+  filter(CLNT_AGE == 80) %>%
+  group_by(PD_BRA_NM2, CLNT_GENDER) %>%
+  summarise( PD_BUY_TOT_sum = sum(PD_BUY_TOT) ) %>%
+  arrange( desc(PD_BUY_TOT_sum) )
+
+
+# 80대 성별 상위 10개 브랜드
+
+a15 <- iu_80 %>% 
+    filter(CLNT_GENDER == "F") %>%
+    head(10)
+
+a16 <- iu_80 %>% 
+    filter(CLNT_GENDER == "M") %>%
+    head(10)
+
+iu_8 <- rbind(a13,a14) 
+
+```
+
+# 80대 성별 상위 10개 브랜드 
+
+```{r code17, echo=TRUE, message=FALSE, warning=FALSE}
+
+iu_8 %>% 
+treemap(
+    # data
+    index=c("CLNT_GENDER","PD_BRA_NM2"),
+    vSize="PD_BUY_TOT_sum",
+    type="index",
+    
+    # Main
+    title="80대 성별 상위 10개 브랜드 ",
+    palette="Dark2",
+    
+    # Borders:
+    border.col=c("black","white"),              
+    border.lwds=c(4,2),                         
+    
+    # Labels
+    fontsize.title=12,
+    fontsize.labels=10,
+    fontcolor.labels="white",
+    fontface.labels=1,            
+    bg.labels=c("transparent"),              
+    # align.labels=c("left", "top"),                                  
+    overlap.labels=0.5
+    # inflate.labels = T
+)
+
+```

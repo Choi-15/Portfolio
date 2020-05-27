@@ -1,0 +1,138 @@
+---
+title: "클러스터링_위계적 : 고객별"
+author: "June"
+date: '2020 4 10 '
+output: html_document
+---
+
+
+(@) ***변수 추출 및 데이터타입 변환***
+
++  고객별 클러스터링을 위한 데이터 전처리
+
+```{r code1, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+# colnames(M_ALL)
+
+# "CLNT_ID","HITS_SEQ","PD_BUY_AM","PD_BUY_CT","PD_BUY_TOT","TOT_PAG_VIEW_CT","TOT_SESS_HR_V" 변수 추출
+cc <- M_ALL[, c(1,3,7,8,9,19,20)]
+colnames(cc)
+
+# NA값 확인 및 제거
+summary(cc)
+cc <- na.omit(cc)
+summary(cc)
+
+# 고객코드(CLNT_ID)별 그룹화
+library(dplyr)
+
+cc_2 <- cc %>% group_by(CLNT_ID) %>%
+  summarise(
+    HITS_SEQ_sum = sum(HITS_SEQ),
+    PD_BUY_AM_mean = mean(PD_BUY_AM),
+    PD_BUY_CT_sum = sum(PD_BUY_CT),
+    PD_BUY_TOT_sum = sum(PD_BUY_TOT),
+    TOT_PAG_VIEW_CT_sum = sum(TOT_PAG_VIEW_CT),
+    TOT_SESS_HR_V_sum = sum(TOT_SESS_HR_V)
+  )
+
+cc_2 <- as.data.frame(cc_2)
+str(cc_2) # 921905
+
+```
+
++ Sampling, cc_3 의 행의 이름을 변경
+
+```{r code2, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# sampling
+set.seed(1234)
+
+n <- nrow(cc_2)
+
+trains <- sample(n, 0.0001*n, replace = F,)
+
+cc_3 <- cc_2[trains, ] #train set
+cc_4 <- cc_2[-trains, ]
+
+# cc_3 행이름 변경
+# 수형도(dendrogram)에 CLNT_ID가 표시하기 위함
+
+rownames(cc_3) <- as.vector(cc_3$CLNT_ID)
+#View(cc_3)
+
+```
+
+
++변수의 척도화 수행(표준화)
+
+```{r code3, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# CLNT_ID 변수 제거
+cc_3 <- cc_3[-1]
+colnames(cc_3)
+#View(cc_3)
+
+# 척도화
+library(pls)
+z_cc_3 <- stdize( as.matrix(cc_3) )
+#View(z_cc_3)
+
+```
+
+
+(@) ***클러스터링***
+
+
++ 유클리디안 거리측정 : dist{stats}
+
+```{r code4, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 유클리디안 거리척도 기준의 유사성 행렬 생성
+d <- dist(z_cc_3, method = "euclidean")  # 변수의 척도화 이후, 유사성 행렬
+
+```
+
++ 위계적 군집수행: hclust{stats}
+
+```{r code5, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 위에서 생성한 거리행렬(유사성행렬)을 매개변수로 지정하여 군집수행
+
+# ( hc <- hclust(d, method = 'single') )
+# ( hc <- hclust(d, method = 'complete') )
+# ( hc <- hclust(d, method = 'centroid') )
+# ( hc <- hclust(d, method = 'average') )
+
+hc <- hclust(d, method = 'complete')
+hc
+
+```
+
+
++ 군집분석결과의 시각화
+
+```{r code6, echo=TRUE, message=FALSE, warning=FALSE}
+
+plot(hc, hang = -1, main = 'Cluster Dendrogram/0.0001, complete')
+
+hc4 <- cutree(hc, k = 4)
+#hc4
+
+cc_3 <- cc_3 %>% mutate(cluster = hc4)
+#View(cc_3)
+plot(cc_3$cluster)
+
+# --------------------------------------------------------------------------
+# 유클리디안 방법을 사용하여 고객아이디를 위계적 방법으로 클러스터링을 
+# 수행하였으나, 유의미한 결과를 얻기 어렵다고 판단함.
+# --------------------------------------------------------------------------
+
+```
+
+
+
+
+
+

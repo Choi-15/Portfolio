@@ -1,0 +1,204 @@
+---
+title: "분산분석 : 디바이스"
+author: "June"
+date: '2020 4 10 '
+output: html_document
+---
+
+
+(@) ***변수 추출 및 데이터타입 변환***
+
++ 양적 변수 추출
+
+```{r code1, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+
+DVC <- M_ALL[ , c(2,9,21)]
+str(DVC)
+
+DVC$DVC_CTG_NM <- factor(DVC$DVC_CTG_NM)
+str(DVC)
+
+```
+
++ 결측치 확인 및 제거
+
+```{r code2, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+sum(is.na(DVC$SESS_ID))    # 0
+sum(is.na(DVC$PD_BUY_TOT)) # 0
+sum(is.na(DVC$DVC_CTG_NM)) # 17096
+
+# na값 삭제
+DVC1 <- DVC[!is.na(DVC$DVC_CTG_NM),]  
+
+```
+
++ 집단(DVC_CTG_NM)별 평균 및 관측치 개수
+
+```{r code3, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(dplyr)
+
+DVC1 %>% group_by(DVC_CTG_NM) %>% summarise(mean = mean(PD_BUY_TOT), n = n())
+
+```
+
+
+(@) ***시각화***
+
++ 시각화 전처리
+
+```{r code4, echo=TRUE, message=FALSE, warning=FALSE}
+
+DVC <- M_ALL[ , c(2,9, 18, 21)]
+
+DVC <- DVC %>%
+    filter(is.na(SESS_DT) == 'FALSE')
+
+DVC$SESS_DT <- as.Date(DVC$SESS_DT)
+
+DVC$month <- cut(DVC$SESS_DT, breaks = "month")
+
+```
+
++ Device 총 이용인원
+
+```{r code5, echo=TRUE, message=FALSE, warning=FALSE}
+library(ggpubr)
+
+DVC %>%
+    group_by(month, DVC_CTG_NM) %>%
+    summarise(count = n()) %>%
+    
+    ggplot(aes(
+        x = month,
+        y = count,
+        group = DVC_CTG_NM,
+        color = DVC_CTG_NM
+    )) +
+    geom_line(lwd = 1) +
+    ggtitle("기기별 총 이용인원") +
+    theme_bw() +
+    labs(x = "", y = "") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    theme(axis.text.x=element_text(angle=30, hjust=1)) +
+    annotate(geom="text", x=as.factor("2018-08-01"), y=472381, 
+         label="Mobile 이용자 4월대비 \n 26% 감소!!") +
+    annotate(geom="point", x=as.factor("2018-09-01"), 
+             y=562381, size=7, shape=21, fill="transparent")
+    scale_y_continuous(labels = scales::comma)
+
+```
+
++ Device별 총 구매금액
+
+```{r code6, echo=TRUE, message=FALSE, warning=FALSE}
+
+DVC %>%
+    group_by(month, DVC_CTG_NM) %>%
+    summarise(PD_BUY_TOT_sum = sum(PD_BUY_TOT)) %>%
+    
+    ggplot(aes(
+        x = month,
+        y = PD_BUY_TOT_sum,
+        group = DVC_CTG_NM,
+        color = DVC_CTG_NM
+    )) +
+    geom_line(lwd = 1) +
+    ggtitle("기기별 총 구매금액") +
+    theme_bw() +
+    labs(x = "", y = "") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    theme(axis.text.x=element_text(angle=30, hjust=1)) +
+    scale_y_continuous(labels = scales::comma)
+
+```
+
+
+(@) ***ANOVA 분산***
+
++ 집단별 평균 시각화
+
+```{r code7, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(gplots)
+
+plotmeans(formula = PD_BUY_TOT ~ DVC_CTG_NM, data = DVC1)
+
+```
+
++ 분산분석 실행
+
+```{r code8, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+dvc_anova <- aov(PD_BUY_TOT ~ DVC_CTG_NM, data =  DVC1)
+
+summary(dvc_anova)
+
+```
+
++ 다중비교 수행 - 시각화
+
+```{r code9, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 1) f-test : 등분산성
+
+dvc_anova_tuk <- TukeyHSD(dvc_anova)
+
+dvc_anova_tuk
+
+plot(dvc_anova_tuk)
+
+```
+
++ 다중비교 수행 - 분석
+
+```{r code10, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(multcomp)
+
+summary(glht(dvc_anova, linfct = mcp(DVC_CTG_NM = "Tukey")))
+
+```
+
++ 다중비교 수행 - 사후분석
+
+```{r code11, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 1) 등분산성 검정
+
+library(car)
+
+leveneTest(PD_BUY_TOT ~ DVC_CTG_NM, data = DVC1)
+
+oneway.test(PD_BUY_TOT ~ DVC_CTG_NM, data = DVC1)
+
+pairwise.t.test(DVC1$PD_BUY_TOT, DVC1$DVC_CTG_NM,
+                p.adjust.method = "BH", pool.sd = FALSE)
+
+kruskal.test(PD_BUY_TOT ~ DVC_CTG_NM, data = DVC1)
+
+```
+
+```{r code12, result = 'asis',include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 1) 등분산성 검정
+
+library(xtable)
+
+xtable(dvc_anovam ,type = "html")
+
+```
+
+
+
+
+
+
+
+
+

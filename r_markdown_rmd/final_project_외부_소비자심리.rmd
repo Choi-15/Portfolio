@@ -1,0 +1,206 @@
+---
+title: "총 구매금액과 소비자 심리지수"
+author: "June"
+date: '2020 4 08 '
+output: html_document
+---
+
+
+(@) ***PD_BUY_TOT 상관계수***
+
+
++ PD_BUY_TOT 월별 데이터화
+
+```{r code1, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+library(dplyr)
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+
+test_fin <- M_ALL
+
+NEW_M_ALL <- test_fin[,c(1,2,9,18,20)]
+NEW_M_ALL$SESS_DT<-as.Date(NEW_M_ALL$SESS_DT)
+
+NEW_M_ALL <- NEW_M_ALL %>%
+    mutate(TOT_SESS_HR_M = TOT_SESS_HR_V/60)
+
+NEW_M_ALL_3 <- NEW_M_ALL
+
+NEW_M_ALL_3$month <- cut(NEW_M_ALL$SESS_DT, breaks = "month")
+
+NEW_M_ALL_3 <- NEW_M_ALL_3 %>%
+    filter(is.na(SESS_DT) == 'FALSE')
+
+```
+
+
++ PD_BUY_TOT 월별 합산
+
+```{r code2, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+extra_01 <- NEW_M_ALL_3 %>%
+    group_by(month) %>%
+    summarise(
+        sum_PD_BUY_TOT = sum(PD_BUY_TOT, na.rm = T)
+    )
+
+extra_01 <- as.data.frame(extra_01)
+
+```
+
+
++ 외부데이터 월별
+```{r code3, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+all <- data.frame(CPI = c(1.5,1.5,1.5,1.1,1.4,2.1),
+                  TB3 = c(2.19,2.25,2.18,2.10,2.02,1.95),
+                  Call = c(1.47,1.50,1.49,1.49,1.50,1.54),
+                  CCI = c(110.0,110.1,110.2,110.3,110.4,110.4),
+                  CLI = c(112.7,113.2,113.5,113.7,113.6,113.8),
+                  mind = c(107.0,107.9,105.4,100.8,98.9,100.0))
+
+extra_02 <- cbind(extra_01, all)
+
+extra_02 <- as.data.frame(extra_02)
+
+
+```
+
+
++ 상관행렬 : 외부데이터
+```{r code4, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+cor_01 <- cor(extra_02[-1])
+
+cor_01
+
+```
+
+
+###### PD_BUY_TOT과 소비자심리지수가 높은 양의 상관성이 있다
+###### 0.94446903
+
+###### 소비자 심리지수가 롯데 온라인 데이터의 고객별 총 구매금액과 상관관계가 제일 높은 것으로 확인되었다. 
+
+###### 2018년 4월부터 9월까지 총 6개월 기간 동안 두 그래프는 비슷한 패턴으로 움직이는 것이 관찰되었다. 
+
+###### 전반적인 롯데 기업의 매출 하락의 원인을 파악하기 위한 방법으로 소비자 심리지수를 종속변수로 설정해 외부 설명변수들과 회귀분석을 진행했다.
+
+
+(@) ***소비자 심리지수 ***
+
+
++ 외부데이터 가져오기
+
+######  금융지수별 2년치(월별) 전월비 데이터 정제
+
+######  사용한 변수
+
+i.	경제 지표: GDP 성장률, 총 저축률, 국내총투자율,
+경기선행지수, 경기 동행지수, 공산품 수입물가지수
+
+ii.	시장 지표 : 무담보 콜금리(1일), CD유통수익률(91일), CP유통수익률(91일), 국고채(1년, 3년), 회사채(장외 3년, AA-등급), 은행 신용카드 개인 이용건수, 은행 신용카드 개인 이용금액, 신용카드 발급장수, KOSPI 시가총액, 거래량, 종가, KOSDAQ 시가총액, 거래량, 종가
+
+iii.	거시 경제 지표 : 생산자물가지수, 소비자물가지수, 달러환율, 위안환율, 엔화환율
+
+```{r code5, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(readr)
+
+# 1. 10년치 데이터
+
+df_data_fin <- read_csv("df_data_fin.csv")
+df_MI <- as.data.frame(df_data_fin)
+
+
+# 2. 2년치 데이터 가공
+
+df_MI2 <- df_MI[103:126, ]
+
+```
+
+
+(@) ***소비자 심리지수와 금융지수간 상관계수***
+
++ 상관계수 : 2년 데이터 (전월비)
+```{r code6, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 1. 10년 데이터 상관 행렬
+MI_corr <- cor(df_MI[-1])
+MI_corr
+
+
+# 2. 2년 데이터 상관행렬
+MI_corr2 <- cor(df_MI2[-1])
+MI_corr2
+
+```
+
+###### 결과 :  상관계수를 확인해 본 결과 2년 (2018 ~ 2019년) 전월비
+데이터를 분석 데이터로 채택.
+
+###### 상관 분석 결과 경제 이론과 차이가 적은 변수들을선택하여 회귀 분석에 활용할 예정.
+
+
+(@) ***회귀분석***
+
+
+###### 회귀분석 1
+
+```{r code7, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# (1) 분석 모델 
+fit_01 <- lm( formula = CCSI ~ KOSPI_Y + USD_Y + ESI + Invest_M,
+              data = df_MI2)
+
+# (2) 분석 결과
+summary(fit_01)
+
+```
+
+
+###### 회귀분석 2
+
+```{r code8, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# (1) 분석 모델 
+fit_02 <- lm( formula = CCSI ~ Card_Cnt_Y + KOSPI_Y + PPI + USD_Y + 
+              ESI + GDP_Q + Savings_Y + Invest_M + CD_Y, 
+              data = df_MI2)
+
+
+# (2) Stepwise을 활용한 최적의 모델 선택 
+library(MASS)
+
+fit_02 <- stepAIC(fit_02, direction = 'both')
+
+
+# (3) 분석 결과
+summary(fit_02)
+
+```
+
+
+###### 회귀분석 3
+
+```{r code9, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+fit_03 <- lm( formula = CCSI ~ KOSPI_Y + PPI + ESI + GDP_Q +
+              Savings_Y + Invest_M + CD_Y , 
+              data = df_MI2)
+
+
+# (2) Stepwise을 활용한 최적의 모델 선택 
+fit_03 <- stepAIC(fit_03, direction = 'both')
+
+
+# (3) 분석 결과
+summary(fit_03)
+
+```
+
+##### 결론 : 외부 데이터를 이용한 회귀 분석을 진행해 온라인 롯데 매출 하락의 원인을 파악하고자 하였다. 고객별 총 구매금액은 소비자 심리지수가 상관도가 높았고, 이것은 코스피 종가와 경제 심리지수에 가장 큰 영향을 받는 것으로 확인되었다.
+ 외부데이터를 활용한 분석은 롯데 자체만의 문제를 설명하지 못한다는 단점이 있다. 롯데 매출액은 타 경쟁사(SSG, 쿠팡, 마켓컬리)와 비교했을 때 매출 하락의 정도가 매우 컸다. 비록, 외부데이터를 통해서 2018년 4월 ~ 9월까지 경제가 하향 추세를 보인다는 게 사실이더라도 롯데의 경우 하락의 폭이 더 심각했다. 롯데 온라인 쇼핑의 하락을 파악하기 위해서는 롯데 매출의 하락을 설명해줄 수 있는 자체 외부데이터를 활용하는 방법이 필요하다고 생각된다. 하지만, 자료 수집에 문제가 있어, 외부데이터를 활용한 분석(상관분석, 회귀분석)은 여기까지 진행하는 것으로 선택했다.
+
+
+
+

@@ -1,0 +1,138 @@
+---
+title: "회귀분석"
+author: "June"
+date: '2020 4 13 '
+output: html_document
+---
+
+
+(@) ***데이터 가공***
+
++ M_ALL 테이블에서 변수 추출(Age, Gender제외)
+
+```{r code1, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+
+# colnames(M_ALL)
+library(dplyr)
+t_M_ALL<- M_ALL %>% select(CLNT_ID, HITS_SEQ, PD_BUY_TOT, TOT_PAG_VIEW_CT, TOT_SESS_HR_V)
+
+colnames(t_M_ALL)
+```
+
++ 데이터 전처리_MEAN
+
+```{r code2, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# CNLT_ID 기준 group_by 실행
+t_M_ALL_mean <- t_M_ALL %>% group_by(CLNT_ID) %>% 
+    summarise(mean_hit = mean(HITS_SEQ),
+              mean_pag_view = mean(TOT_PAG_VIEW_CT),
+              mean_sess_hr = mean(TOT_SESS_HR_V),
+              mean_PD_BUY_TOT = mean(PD_BUY_TOT))
+
+# NA값 제거
+summary(t_M_ALL_mean)
+t_M_ALL_mean <- na.omit(t_M_ALL_mean)
+summary(t_M_ALL_mean)
+
+```
+
+
++ 데이터 전처리_SUM
+
+```{r code3, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# CNLT_ID 기준 group_by 실행
+t_M_ALL_sum <- t_M_ALL %>% group_by(CLNT_ID) %>% 
+    summarise(sum_hit = sum(HITS_SEQ),
+              sum_pag_view = sum(TOT_PAG_VIEW_CT),
+              sum_sess_hr = sum(TOT_SESS_HR_V),
+              sum_PD_BUY_TOT = sum(PD_BUY_TOT))
+
+summary(t_M_ALL_sum)
+t_M_ALL_sum <- na.omit(t_M_ALL_sum)
+summary(t_M_ALL_sum)
+
+```
+
+
+(@) ***회귀분석***
+
++ 회귀식 적합_MEAN
+```{r code4, echo=TRUE, message=FALSE, warning=FALSE}
+#lm{stats} 함수이용
+attach(t_M_ALL_mean)
+
+fit1 <- lm(formula = mean_PD_BUY_TOT ~ mean_hit + mean_pag_view + mean_sess_hr, data = t_M_ALL_mean)
+fit1
+
+summary(fit1)
+
+names(fit1)
+
+# 회귀 식 : 
+#Call:
+#lm(formula = mean_PD_BUY_TOT ~ mean_hit + mean_pag_view + mean_sess_hr, 
+#    data = t_M_ALL_1)
+# Multiple R-squared:  0.004405 , Adjusted R-squared:  0.004402 
+
+# mean으로 전처리 했을때 설명력이 유의미하지 않다고 판단함
+
+detach(t_M_ALL_mean)
+
+```
+
+
++ 회귀식 적합_SUM
+```{r code5, echo=TRUE, message=FALSE, warning=FALSE}
+
+#lm{stats} 함수이용
+attach(t_M_ALL_sum)
+
+fit2 <- lm(formula = sum_PD_BUY_TOT ~ sum_hit + sum_pag_view + sum_sess_hr, data = t_M_ALL_sum)
+fit2
+
+summary(fit2)
+
+#Call:
+# lm(formula = sum_PD_BUY_TOT ~ sum_hit + sum_pag_view + sum_sess_hr, 
+#    data = t_M_ALL_sum)
+# Multiple R-squared:  0.5372 , Adjusted R-squared:  0.5372
+
+detach(t_M_ALL_sum)
+
+```
+
+
+(@) ***단계적 회귀 (Step-wise Regression)***
+
+
++ 후진(Backward Stepwise)
+
+```{r code6, echo=TRUE, message=FALSE, warning=FALSE}
+library(MASS)
+
+fit2 <- lm(formula = sum_PD_BUY_TOT ~ sum_hit + sum_pag_view + sum_sess_hr, data = t_M_ALL_sum) 
+
+stepAIC(fit2, direction = 'backward')
+stepAIC(fit2, direction = 'forward')
+
+#최종 적합 모델:
+#lm(formula = sum_PD_BUY_TOT ~ sum_hit + sum_pag_view + sum_sess_hr, 
+#    data = t_M_ALL_sum)
+
+
+
+
+# 전처리 없이 진행한 회귀식은 설명력이 너무 낮아 유의미하지 않다고 판단하여 
+# 고객 아이디별(CLNT_ID) 그룹화 후 변수의 mean, sum과 같은 전처리 과정을 거쳤다.
+# mean으로 전처리 시, 회귀식은 lm(formula = mean_PD_BUY_TOT ~ mean_hit + mean_pag_view + mean_sess_hr, 
+#    data = t_M_ALL_1)이고, Multiple R-squared:  0.004405 , Adjusted R-squared:  0.004402 의 설명력을 갖는다.
+# sum으로 전처리 시, 회귀식은 lm(formula = sum_PD_BUY_TOT ~ sum_hit + sum_pag_view + sum_sess_hr, 
+#    data = t_M_ALL_sum)이고, Multiple R-squared:  0.5372 , Adjusted R-squared:  0.5372 의 설명력을 갖는다.
+# mean 과 sum 중, sum으로 전처리 시 회귀식이 유의미하다고 판단, 이후 stepAIC를 사용하여 최종 적합된 회귀 모델은 아래와 같다.
+# lm(formula = sum_PD_BUY_TOT ~ sum_hit + sum_pag_view + sum_sess_hr,data = t_M_ALL_sum)
+
+```

@@ -1,0 +1,113 @@
+---
+title: "분산분석 : 지역별"
+author: "June"
+date: '2020 4 10 '
+output: html_document
+---
+
+
+(@) ***변수 추출 및 데이터타입 변환***
+
++ 양적 변수 추출
+
+```{r code1, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+
+ZONE <- M_ALL[,c(9,22)]
+str(ZONE)
+
+ZONE$ZON_NM <- as.factor(ZONE$ZON_NM)
+str(ZONE)
+
+```
+
++ 지역별 PD_BUY_TOT 평균
+
+```{r code2, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+attach(ZONE)
+
+
+aggregate(PD_BUY_TOT, by=list(ZON_NM), FUN=sum)
+
+tapply(PD_BUY_TOT, ZON_NM, sum)
+
+```
+
+
+(@) ***ANOVA 분산***
+
+
++ 분산분석 실행
+
+```{r code3, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+fit.aov <- aov(PD_BUY_TOT ~ ZON_NM, data = ZONE)
+fit.aov
+
+anova(fit.aov)
+
+summary(fit.aov)
+
+```
+
++ 집단별 평균 시각화
+
+```{r code4, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(gplots)
+
+plotmeans(formula = PD_BUY_TOT ~ ZON_NM, data = ZONE)
+
+```
+
++ 다중비교 수행 - 시각화
+
+```{r code5, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+fit.mcp <- TukeyHSD(fit.aov)
+
+fit.mcp
+
+plot(fit.mcp)
+
+```
+
++ 다중비교 수행 - 분석
+
+```{r code6, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(multcomp)
+
+summary(glht(fit.aov, linfct = mcp(ZON_NM = "Tukey")))
+
+```
+
++ 다중비교 수행 - 사후분석
+
+```{r code7, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+library(car)
+
+# 1) 등분산성 검정
+leveneTest(PD_BUY_TOT ~ ZON_NM, data = ZONE)
+
+oneway.test(PD_BUY_TOT ~ ZON_NM, data = ZONE)
+
+pairwise.t.test(ZONE$PD_BUY_TOT, ZONE$DVC_CTG_NM,
+                p.adjust.method = "BH", pool.sd = FALSE)
+
+kruskal.test(PD_BUY_TOT ~ ZON_NM, data = ZON_NM)
+
+```
+
+
+
+
+
+
+
+
+
+
+

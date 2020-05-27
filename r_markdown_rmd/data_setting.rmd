@@ -1,0 +1,255 @@
+---
+title: "Time-Series Plots"
+author: "June"
+date: '2020 3 30 '
+output: html_document
+---
+(@) ***SESS_ID_SUM***
+
++ SESS_ID_SUM Data Setting
+
+```{r code1, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+test <- M_ALL_2[!duplicated(M_ALL_2[,c("SESS_ID","SESS_DT")]),]
+test <- test[,c("SESS_ID","SESS_DT")]
+test$SESS_DT <- as.Date(test$SESS_DT)
+
+test <- test %>% 
+  arrange(SESS_DT) %>% 
+  group_by(SESS_DT) %>% 
+  summarise(SESS_ID_SUM = n())
+
+```
+
++ SESS_ID_SUM Visualization
+
+```{r code2, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+greem8 <- ggplot( test, aes(x = SESS_DT, y = SESS_ID_SUM)) + 
+  geom_line(size = 1, color = 'Black') +
+  ggtitle("M_ALL_2 SESS_ID_SUM 시계열 Plot") +
+  theme_bw() +
+  labs(x="", y="") +
+  scale_x_date( date_breaks = "1 month", 
+                date_labels = '%m/%d') +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  # geom_hline(yintercept=mean(test), linetype='dashed') +
+  theme(plot.title = element_text( hjust = 0.5, 
+                                   size = 18, color = "darkblue"))
+greem8
+
+```
+
+
+(@) ***HITS_SEQ_SUM***
+
++ HITS_SEQ_SUM Data Setting
+
+```{r code3, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL_3 <- M_ALL_2 %>% 
+  arrange(SESS_DT) %>% 
+  group_by(SESS_DT) %>% 
+  summarise(HITS_SEQ_SUM = sum(HITS_SEQ))
+
+```
+
++ HITS_SEQ_SUM Visualization
+
+```{r code4, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL_3$SESS_DT <- as.Date(M_ALL_3$SESS_DT)
+
+greem1 <- ggplot( M_ALL_3, aes(x = SESS_DT, y = HITS_SEQ_SUM)) + 
+  geom_line(size = 1, color = '#800000') +
+  ggtitle("M_ALL_2 HITS_SEQ_SUM 시계열 Plot") +
+  theme_bw() +
+  labs(x="", y="") +
+  scale_x_date( date_breaks = "1 month", 
+                date_labels = '%m/%d') +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  geom_hline(yintercept=mean(M_ALL_3$HITS_SEQ_SUM), linetype='dashed') +
+  theme(plot.title = element_text( hjust = 0.5, 
+                                   size = 18, color = "darkblue"))
+greem1
+
+```
+
+
+(@) ***PD_C_SUM***
+
++ PD_C_SUM Data Setting
+
+```{r code5, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+testp <- M_ALL_2[,c("PD_C","SESS_DT")]
+
+test_p <- testp %>% 
+  arrange(SESS_DT) %>% 
+  group_by(SESS_DT) %>% 
+  summarise(PD_C_SUM = n())
+
+test_p$SESS_DT <- as.Date(test_p$SESS_DT)
+```
+
++ PD_C_SUM Visualization
+
+```{r code6, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+greem7 <- ggplot( test_p, aes(x = SESS_DT, y = PD_C_SUM)) + 
+  geom_line(size = 1, color = 'Blue') +
+  ggtitle("M_ALL_2 PD_C_SUM 시계열 Plot") +
+  theme_bw() +
+  labs(x="", y="") +
+  scale_x_date( date_breaks = "1 month", 
+                date_labels = '%m/%d') +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  # geom_hline(yintercept=mean(test), linetype='dashed') +
+  theme(plot.title = element_text( hjust = 0.5, 
+                                   size = 18, color = "darkblue"))
+greem7
+
+```
+
+
+(@) ***PD_BUY_AM_MEAN***
+
++ PD_BUY_AM_MEAN Data Setting
+
+```{r code7, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL_3 <- M_ALL_2 %>% 
+  arrange(SESS_DT) %>% 
+  group_by(SESS_DT) %>% 
+  summarise(PD_BUY_AM_MEAN = mean(PD_BUY_AM))
+
+M_ALL_3$SESS_DT <- as.Date(M_ALL_3$SESS_DT)
+
+```
+
++ PD_BUY_AM_MEAN Visualization
+
+```{r code8, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+greem2 <- ggplot( M_ALL_3, aes(x = SESS_DT, y = PD_BUY_AM_MEAN)) + 
+  geom_line(size = 1, color = '#228B22') +
+  ggtitle("M_ALL_2 PD_BUY_AM_MEAN 시계열 Plot") +
+  theme_bw() +
+  labs(x="", y="") +
+  scale_x_date( date_breaks = "1 month", 
+                date_labels = '%m/%d') +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  geom_hline(yintercept=mean(M_ALL_3$PD_BUY_AM_MEAN), linetype='dashed') +
+  theme(plot.title = element_text( hjust = 0.5, 
+                                   size = 18, color = "darkblue"))
+greem2
+```
+
+
+(@) ***PD_BUY_CT_SUM***
+
++ PD_BUY_AM_MEAN Data Setting
+
+```{r code9, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL_3 <- M_ALL_2 %>% 
+  arrange(SESS_DT) %>% 
+  group_by(SESS_DT) %>% 
+  summarise(PD_BUY_CT_SUM = sum(PD_BUY_CT))
+
+M_ALL_3$SESS_DT <- as.Date(M_ALL_3$SESS_DT)
+
+```
+
++ PD_BUY_AM_MEAN Visualization
+
+```{r code10, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+greem3 <- ggplot( M_ALL_3, aes(x = SESS_DT, y = PD_BUY_CT_SUM)) + 
+  geom_line(size = 1, color = '#F08080') +
+  ggtitle("M_ALL_2 PD_BUY_CT_SUM 시계열 Plot") +
+  theme_bw() +
+  labs(x="", y="") +
+  scale_x_date( date_breaks = "1 month", 
+                date_labels = '%m/%d') +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  geom_hline(yintercept=mean(M_ALL_3$PD_BUY_CT_SUM), linetype='dashed') +
+  theme(plot.title = element_text( hjust = 0.5, 
+                                   size = 18, color = "darkblue"))
+greem3
+```
+
+
+(@) ***TOTPAG_VIEW_CT_SUM***
+
++ TOTPAG_VIEW_CT_SUM Data Setting
+
+```{r code11, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL_3 <- M_ALL_2 %>% 
+  arrange(SESS_DT) %>% 
+  group_by(SESS_DT) %>% 
+  summarise(TOT_PAG_VIEW_CT_SUM = sum(TOT_PAG_VIEW_CT))
+
+M_ALL_3$SESS_DT <- as.Date(M_ALL_3$SESS_DT)
+
+```
+
++ TOT_PAG_VIEW_CT_SUM Visualization
+
+```{r code12, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+greem4 <- ggplot( M_ALL_3, aes(x = SESS_DT, y = TOT_PAG_VIEW_CT_SUM)) + 
+  geom_line(size = 1, color = '#48D1CC') +
+  ggtitle("M_ALL_2 TOT_PAG_VIEW_CT_SUM 시계열 Plot") +
+  theme_bw() +
+  labs(x="", y="") +
+  scale_x_date( date_breaks = "1 month", 
+                date_labels = '%m/%d') +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  geom_hline(yintercept=mean(M_ALL_3$TOT_PAG_VIEW_CT_SUM), linetype='dashed') +
+  theme(plot.title = element_text( hjust = 0.5, 
+                                   size = 18, color = "darkblue"))
+greem4
+```
+
+
+(@) ***TOT_SESS_HR_V_SUM***
+
++ TOT_SESS_HR_V_SUM Data Setting
+
+```{r code13, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL_3 <- M_ALL_2 %>% 
+  arrange(SESS_DT) %>% 
+  group_by(SESS_DT) %>% 
+  summarise(TOT_SESS_HR_V_SUM = sum(TOT_SESS_HR_V))
+
+M_ALL_3$SESS_DT <- as.Date(M_ALL_3$SESS_DT)
+
+```
+
++ TOT_SESS_HR_V_SUM Visualization
+
+```{r code14, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+greem5 <- ggplot( M_ALL_3, aes(x = SESS_DT, y = TOT_SESS_HR_V_SUM)) + 
+  geom_line(size = 1, color = '#7B68EE') +
+  ggtitle("M_ALL_2 TOT_SESS_HR_V_SUM 시계열 Plot") +
+  theme_bw() +
+  labs(x="", y="") +
+  scale_x_date( date_breaks = "1 month", 
+                date_labels = '%m/%d') +
+  theme(panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  geom_hline(yintercept=mean(M_ALL_3$TOT_SESS_HR_V_SUM), linetype='dashed') +
+  theme(plot.title = element_text( hjust = 0.5, 
+                                   size = 18, color = "darkblue"))
+greem5
+```

@@ -1,0 +1,243 @@
+---
+title: "분산분석 : 고객별"
+author: "June"
+date: '2020 4 10 '
+output: html_document
+---
+
+
+(@) ***변수 추출 및 데이터타입 변환***
+
++ 고객 등급 생성 전처리
+
+```{r code1, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+
+library(dplyr)
+attach(M_ALL)
+
+t_M_ALL <- M_ALL[,c(1,9)]
+
+test_fin <- na.omit(t_M_ALL)
+# summary(test_fin)
+
+```
+
++ 고객별 (CLNT_ID 기준) 총 구매 금액
+
+```{r code2, echo=TRUE, message=FALSE, warning=FALSE}
+
+test_fin3 <- test_fin %>%
+    group_by(CLNT_ID) %>%
+    summarise(
+        PD_BUY_TOT_sum = sum(PD_BUY_TOT))
+
+```
+
++ 고객 등급 생성 
+  
+  총 구매금액 기준으로 고객별 등급 구분. 
+  (기준 : 롯데 하이마트 & 백화점)
+
+```{r code3, echo=TRUE, message=FALSE, warning=FALSE}
+
+test_fin4 <- test_fin3 %>%
+mutate(Grade =
+ifelse(PD_BUY_TOT_sum > 10000000,"VVIP",
+ifelse(PD_BUY_TOT_sum > 2500000 & PD_BUY_TOT_sum <= 10000000,
+"VIP","Cust")))
+
+```
+
++ 고객별 등급 부여
+
+```{r code4, echo=TRUE, message=FALSE, warning=FALSE}
+
+t_M_ALL <- t_M_ALL %>% group_by(CLNT_ID) %>% 
+    summarise(sum_PD_BUY_TOT = sum(PD_BUY_TOT))
+t_M_ALL <- as.data.frame(t_M_ALL)
+
+
+CUST <- merge(t_M_ALL, test_fin4, by = 'CLNT_ID', all.x = TRUE)
+
+# colnames(CUST)
+CUST <- CUST[-3]
+CUST$Grade <- as.factor(CUST$Grade)
+
+```
+
+
+(@) ***고객별 시각화***
+
++ 시각화 전처리
+
+```{r code5, echo=TRUE, message=FALSE, warning=FALSE}
+
+mall_01 <- M_ALL[,c(1,9,18)]
+
+mall_01 <- mall_01 %>%
+    filter(is.na(SESS_DT) == 'FALSE')
+
+mall_01$SESS_DT <- as.Date(mall_01$SESS_DT)
+
+mall_01$month <- cut(mall_01$SESS_DT, breaks = "month")
+# View(t_M_ALL)
+
+CUST <- merge(mall_01, test_fin4, by = 'CLNT_ID', all.x = TRUE)
+
+```
+
++ 고객별 이용자 추이 (단위 : 명)
+
+```{r code6, echo=TRUE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggpubr)
+
+
+CUST %>%
+    group_by(Grade, month) %>%
+    summarise(count = n()) %>%
+    
+    ggplot(aes(
+        x = month,
+        y = count,
+        group = Grade,
+        color = Grade
+    )) +
+    geom_line(lwd = 1) +
+    ggtitle("고객별 월 이용자 추이 (단위 : 명)") +
+    theme_bw() +
+    labs(x = "", y = "") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    theme(axis.text.x=element_text(angle=30, hjust=1)) +
+    annotate(geom="text", x=as.factor("2018-08-01"), y=500000, 
+             label="5월 대비 8월 CUST 고객\n 26.8% 하락!!") +
+    annotate(geom="point", x=as.factor("2018-08-01"), 
+             y=622130, size=7, shape=21, fill="transparent") +
+    scale_y_continuous(labels = scales::comma)
+
+```
+
++ 고객별 매출 추이 (단위 : 월)
+
+```{r code7, echo=TRUE, message=FALSE, warning=FALSE}
+
+CUST %>%
+    group_by(Grade, month) %>%
+    summarise(sum_PD_BUY_TOT = sum(PD_BUY_TOT)) %>%
+    ggplot(aes(
+        x = month,
+        y = sum_PD_BUY_TOT,
+        group = Grade,
+        color = Grade
+    )) +
+    geom_line(lwd = 1) +
+    ggtitle("등급별 월 총구매금액 추이 (단위 : 원)") +
+    theme_bw() +
+    labs(x = "", y = "") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    theme(axis.text.x=element_text(angle=30, hjust=1)) +
+    annotate(geom="text", x=as.factor("2018-08-01"), y=25724969480, 
+        label="8월 CUST 고객 총구매액 \n 86억 감소!!") +
+    annotate(geom="point", x=as.factor("2018-08-01"), 
+         y=30724969480, size=7, shape=21, fill="transparent") +
+    scale_y_continuous(labels = scales::comma)
+
+
+```
+
+
+(@) ***ANOVA 분산***
+
+
++ 분산분석 실행
+
+```{r code8, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+attach(CUST)
+
+CUST$Grade <- as.factor(CUST$Grade)
+
+fit.aov <- aov(PD_BUY_TOT_sum ~ Grade, data = CUST)
+fit.aov
+
+anova(fit.aov)
+
+summary(fit.aov)
+
+fit.aov$coefficients
+
+```
+
++ 집단별 평균 시각화
+
+```{r code9, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(gplots)
+options(scipen = 99)
+# formula 대로, 각 집단별 평균을 시각화해서 보여줌
+plotmeans(formula = PD_BUY_TOT_sum ~ Grade, data = CUST)
+
+```
+
++ 다중비교 수행 - 시각화
+
+```{r code10, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+fit.mcp <- TukeyHSD(fit.aov)
+
+# fit.mcp
+# names(fit.mcp)
+
+options(scipen = 99)
+
+par(las=2)
+par(mar=c(5,8,4,2))
+
+plot(fit.mcp)
+
+```
+
++ 다중비교 수행 - 분석
+
+```{r code11, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(multcomp)
+
+
+summary(glht(fit.aov, linfct = mcp(Grade = "Tukey")))
+
+```
+
++ 다중비교 수행 - 사후분석
+
+```{r code12, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 1) 등분산성 검정
+library(car)
+
+leveneTest(PD_BUY_TOT_sum ~ Grade, data = CUST)
+
+oneway.test(PD_BUY_TOT_sum ~ Grade, data = CUST)
+
+pairwise.t.test(CUST$PD_BUY_TOT_sum, CUST$Grade,
+                p.adjust.method = "BH", pool.sd = FALSE)
+
+kruskal.test(PD_BUY_TOT_sum ~ Grade, data = CUST)
+
+detach(CUST)
+
+```
+
+
+
+
+
+
+
+
+
+
+

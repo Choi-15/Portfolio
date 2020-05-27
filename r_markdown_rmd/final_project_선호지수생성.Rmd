@@ -1,0 +1,180 @@
+---
+title: "선호지수 생성"
+author: "June"
+date: '2020 4 10 '
+output: html_document
+---
+
+
+(@) ***변수 추출 및 데이터타입 변환***
+
++ 선호지수 생성 데이터셋 가공
+
+###### 선호지수 생성에 필요한 변수들을 선정해서 데이터 셋을 만든다.
+###### 가공한 데이터 셋에서 결측치를 확인하고 제거하는 작업을 진행한다. 
+
+```{r code1, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(MASS)
+library(pls)
+
+
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+
+mall_01 <- M_ALL[,c(3,7,8,9,16,17,19,20)]
+
+mall_01 <- mall_01 %>%
+    filter(is.na(SESS_SEQ) == 'FALSE')
+```
+
++ 상품 소분류별 그룹화 진행
+
+###### 상품 소분류별 그룹화를 진행해 개별 변수들을 합산한다.
+###### n()함수를 이용해서 개별 상품 소분류별로 2018년 4월부터 6월까지
+###### 판매 빈도를 측정하는 Count 파생변수를 생성한다.
+
+```{r code2, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+mall_01 <- mall_01 %>%
+    group_by(CLAC3_NM) %>%
+    summarise(sum_PD_BUY_TOT = sum(PD_BUY_TOT),
+              sum_PD_BUY_CT = sum(PD_BUY_CT),
+              sum_PD_BUY_AM = sum(PD_BUY_AM),
+              sum_HITS_SEQ = sum(HITS_SEQ),
+              sum_TOT_PAG_VIEW_CT = sum(TOT_PAG_VIEW_CT),
+              sum_TOT_SESS_HR_V = sum(TOT_SESS_HR_V),
+              count = n()) 
+
+```
+
++ 표준화(Standardization)
+
+###### 개별 변수별로 값의 범위가 차이가 있다. 회귀 분석을 진행하기 전에 
+###### 표준화 작업을 거쳐서 일정한 값을 갖도록 추가적인 작업을 진행한다.
+
+```{r code3, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 표준화
+mall_02 <- mall_01[-1]
+
+mall_02 <- stdize(as.matrix(mall_02))
+mall_02 <- as.data.frame(mall_02)
+
+```
+
+
+(@) ***소비자 선호지수***
+
++ 상품 소분류 판매빈도에 따른 회귀분석
+
+###### 상품 소분류 판매빈도를 종속변수로 설정하고 기타 양적인 변수를 설명변수에 두어 회귀 분석을 진행한다. 
+###### 회귀결과 자체보다, 개별 변수가 판매빈도에 대한 가중치를 확인하는 게 목적이다. 
+
+```{r code4, echo=TRUE, message=FALSE, warning=FALSE}
+
+fit_01 <- lm(count ~ sum_PD_BUY_TOT +
+                 sum_HITS_SEQ + sum_TOT_PAG_VIEW_CT +
+                 sum_TOT_SESS_HR_V, data = mall_02)
+summary(fit_01)
+
+```
+
++ 소비자 선호지수 생성
+
+###### 회귀식 결과에서 얻은 가중치를 바탕으로 개별 변수에 가중치를 반영하였다.
+###### 소비자 선호지수와 관련있는 변수을 선별해서 소비자 선호지수 생성에 활용하였다. 
+###### 필요한 변수들을 합산하고 평균 값으로 나눴다. ***
+
+```{r code5, echo=TRUE, message=FALSE, warning=FALSE}
+index_01 <- mall_01 %>%
+    mutate( cp_Index = ((0.04 * sum_PD_BUY_TOT) +
+                       (0.4 * sum_HITS_SEQ) + (sum_TOT_SESS_HR_V)) -
+                       (0.55 * sum_TOT_PAG_VIEW_CT))
+
+index_01 <- index_01 %>%
+    mutate( cp_Index = (cp_Index/ mean(cp_Index)) * 100 )
+
+```
+
++ 상품 선호지수 확인
+
+###### 2018년 4월부터 6월까지 전체 기간 상품 소분류에 선호지수 공식을 활용해서
+###### 상품 군별 선호지수를 생성했다.
+###### 내림차순으로 가장 선호지수가 높은 순으로 상품을 정렬했다.
+
+```{r code6, echo=TRUE, message=FALSE, warning=FALSE}
+
+a <- index_01[,c(1,9)]
+colnames(a) <- c("상품소분류","선호지수")
+a <- a %>% arrange(desc(선호지수))
+
+a
+
+```
+
+(@) ***개별 선호지수 파악***
+
++ 30대, 여성, 서울거주 고객의 6개월 상품 선호지수 생성
+
+###### 30대 여성에 맞는 상품 선호지수를 생성하기 위한 데이터셋을 가공한다.
+
+```{r code7, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+ex_05 <- M_ALL[,c(3,7,8,9,11,12,16,18,19,20,22)]
+
+iu_04 <- ex_05 %>%
+  filter(CLNT_GENDER == 'F' & CLNT_AGE == '30' &
+           ZON_NM == "Seoul")
+
+
+# 30대 데이터셋 만들기
+iu_04 <- iu_04 %>%
+  group_by(CLAC3_NM) %>%
+  summarise(sum_PD_BUY_TOT = sum(PD_BUY_TOT),
+            sum_PD_BUY_CT = sum(PD_BUY_CT),
+            sum_PD_BUY_AM = sum(PD_BUY_AM),
+            sum_HITS_SEQ = sum(HITS_SEQ),
+            sum_TOT_PAG_VIEW_CT = sum(TOT_PAG_VIEW_CT),
+            sum_TOT_SESS_HR_V = sum(TOT_SESS_HR_V),
+            count = n())
+
+```
+
++ 상품 선호지수 생성
+
+```{r code8, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 서울에 사는 30대 여자 상품군별 선호지수 생성
+iu_04 <- iu_04 %>%
+  mutate( cp_Index = ((0.04 * sum_PD_BUY_TOT) +
+                        (0.4 * sum_HITS_SEQ) + (sum_TOT_SESS_HR_V)) -
+            (0.55 * sum_TOT_PAG_VIEW_CT))
+
+iu_04 <- iu_04 %>%
+  mutate( cp_Index = (cp_Index/ mean(cp_Index)) * 100 )
+
+```
+
+
++ 상품 선호지수 확인
+
+```{r code11, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+b <- iu_04[,c(1,9)]
+colnames(b) <- c("상품소분류","선호지수")
+b <- b %>% arrange(desc(선호지수))
+
+b
+
+```
+
+
+
+
+
+
+
+
+
+
+

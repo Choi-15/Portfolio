@@ -1,0 +1,100 @@
+---
+title: "클러스터링 : 제품별"
+author: "June"
+date: '2020 4 10 '
+output: html_document
+---
+
+
+(@) ***변수 추출 및 데이터타입 변환***
+
++  제품별 클러스터링을 위한 데이터 전처리
+
+```{r code1, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+colnames(M_ALL)
+
+# PD_C, PD_BUY_AM, PD_BUY_CT, PD_BUY_TOT 추출
+PRODUCT_CLUST <- M_ALL[,c(4,7,8,9)] 
+# colnames(PRODUCT_CLUST)
+
+library(dplyr)
+
+# 상품코드(PD_C)별 그룹화
+PRODUCT_CLUST <-
+  PRODUCT_CLUST %>% group_by(PD_C) %>% summarise(PD_BUY_AM = mean(PD_BUY_AM),
+                                                 PD_BUY_TOT = mean(PD_BUY_TOT))
+PRODUCT_CLUST <- as.data.frame(PRODUCT_CLUST)
+
+# View(PRODUCT_CLUST)
+
+```
+
++ 변수의 척도화 수행(표준화)
+
+```{r code2, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# PD_C 변수 제거
+PRODUCT_CLUST <- PRODUCT_CLUST[-1]
+
+library(pls)
+
+Z_PRODUCT_CLUST <- stdize( as.matrix(PRODUCT_CLUST) )
+# View(Z_PRODUCT_CLUST)
+
+
+```
+
+
+(@) ***클러스터링***
+
+
++ 클러스터링 수행 (k-means with k = 5)
+
+```{r code3, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+kmc <- kmeans(Z_PRODUCT_CLUST,centers = 5)
+
+```
+
++ 클러스터링 결과 시각화
+
+```{r code4, echo=TRUE, message=FALSE, warning=FALSE}
+
+plot(Z_PRODUCT_CLUST, col = kmc$cluster, pch = 16)
+
+```
+
+
++ 클러스터링 결과 변수에 담기, subset 생성
+
+```{r code5, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 새변수 cluster 에 군집화 결과 담기 
+PRODUCT_CLUST <- PRODUCT_CLUST %>% mutate(cluster = kmc$cluster)
+
+# 각 군집별 subset 생성
+sub_1 <- PRODUCT_CLUST %>% filter(cluster == 1)
+sub_2 <- PRODUCT_CLUST %>% filter(cluster == 2)
+sub_3 <- PRODUCT_CLUST %>% filter(cluster == 3)
+sub_4 <- PRODUCT_CLUST %>% filter(cluster == 4)
+sub_5 <- PRODUCT_CLUST %>% filter(cluster == 5)
+
+
+# --------------------------------------------------------------------------
+# PD_C, PD_BUY_AM, PD_BUY_CT, PD_BUY_TOT 변수를 사용하여 PD_C(제품코드) 별
+# 클러스터링 결과를 시각화 하였다.
+# --------------------------------------------------------------------------
+
+
+```
+
+
+
+
+
+
+
+
+

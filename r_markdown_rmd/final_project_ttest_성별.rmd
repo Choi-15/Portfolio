@@ -1,0 +1,316 @@
+---
+title: '집단간 T-test : 성별'
+author: "June"
+date: '2020 4 10 '
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+(@) ***데이터 가공***
+
++ 양적 변수 추출
+
+```{r code1, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+
+mall_01 <- M_ALL[, c(3,7,8,9,11,17,19,20)]
+
+library(dplyr)
+mall_01 <- mall_01 %>%
+    filter(is.na(CLNT_GENDER) == 'FALSE')
+
+# colnames(mall_01)
+
+```
+
+
+(@) ***데이터 가공***
+
+
++ HITS_SEQ : F-test & T-test
+
+```{r code2, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 1) f-test : 등분산성
+
+ftest_01 <- var.test( HITS_SEQ ~ CLNT_GENDER,
+                      data = mall_01)
+ftest_01
+
+
+# 2) t-test : 집단간 차이
+
+wilcox_01 <- wilcox.test( HITS_SEQ ~ CLNT_GENDER,
+                          data = mall_01,
+                          exact = F)
+wilcox_01
+
+```
+
+## HITS_SEQ : Boxplot
+
+```{r code3, echo=TRUE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggpubr)
+
+( g1 <- mall_01 %>%
+    sample_frac(0.0005) %>%
+    ggboxplot(
+        x = "CLNT_GENDER",
+        y = "HITS_SEQ",
+        color = "CLNT_GENDER",
+        palette = c("#00AFBB", "#E7B800"),
+        ylab = "HITS_SEQ",
+        xlab = "CLNT_GENDER"
+    ) )
+
+```
+
+
++ PD_BUY_AM : F-test & T-test
+
+```{r code4, echo=TRUE, message=FALSE, warning=FALSE}
+
+ftest_02 <- var.test( PD_BUY_AM ~ CLNT_GENDER,
+                      data = mall_01)
+ftest_02
+
+
+# 2) t-test : 집단간 차이
+
+wilcox_02 <- wilcox.test( PD_BUY_AM ~ CLNT_GENDER,
+                          data = mall_01,
+                          exact = F)
+wilcox_02
+
+```
+
+## PD_BUY_AM : Boxplot
+
+```{r code5, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(dplyr)
+library(ggpubr)
+
+( g2 <- mall_01 %>%
+        sample_frac(0.0005) %>%
+        ggboxplot(
+            x = "CLNT_GENDER",
+            y = "PD_BUY_AM",
+            color = "CLNT_GENDER",
+            palette = c("#00AFBB", "#E7B800"),
+            ylab = "PD_BUY_AM",
+            xlab = "CLNT_GENDER"
+        ) )
+
+```
+
+
++ PD_BUY_AM : F-test & T-test
+
+```{r code6, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+
+# 1) f-test : 등분산성
+
+ftest_03 <- var.test( PD_BUY_CT ~ CLNT_GENDER,
+                      data = mall_01)
+ftest_03
+
+
+# 2) t-test : 집단간 차이
+
+wilcox_03 <- wilcox.test( PD_BUY_CT ~ CLNT_GENDER,
+                          data = mall_01,
+                          exact = F)
+wilcox_03
+
+```
+
+## PD_BUY_CT : Boxplot
+
+```{r code7, echo=TRUE, message=FALSE, warning=FALSE}
+
+( g3 <- mall_01 %>%
+        sample_frac(0.0005) %>%
+        ggboxplot(
+            x = "CLNT_GENDER",
+            y = "PD_BUY_CT",
+            color = "CLNT_GENDER",
+            palette = c("#00AFBB", "#E7B800"),
+            ylab = "PD_BUY_CT",
+            xlab = "CLNT_GENDER"
+        ) )
+
+```
+
+
++ PD_BUY_TOT : F-test & T-test
+
+```{r code8, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 1) f-test : 등분산성
+
+ftest_04 <- var.test( PD_BUY_TOT ~ CLNT_GENDER,
+                      data = mall_01)
+ftest_04
+
+
+# 2) t-test : 집단간 차이
+
+wilcox_04 <- wilcox.test( PD_BUY_TOT ~ CLNT_GENDER,
+                          data = mall_01,
+                          exact = F)
+wilcox_04
+
+```
+
+## PD_BUY_TOT : Boxplot
+
+```{r code9, echo=TRUE, message=FALSE, warning=FALSE}
+
+( g4 <- mall_01 %>%
+        sample_frac(0.0005) %>%
+        ggboxplot(
+            x = "CLNT_GENDER",
+            y = "PD_BUY_TOT",
+            color = "CLNT_GENDER",
+            palette = c("#00AFBB", "#E7B800"),
+            ylab = "PD_BUY_TOT",
+            xlab = "CLNT_GENDER"
+        ) )
+
+```
+
+
++ SESS_SEQ : F-test & T-test
+
+```{r code10, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 1) f-test : 등분산성
+
+ftest_05 <- var.test( SESS_SEQ ~ CLNT_GENDER,
+                      data = mall_01)
+ftest_05
+
+# 2) t-test : 집단간 차이
+
+wilcox_05 <- wilcox.test( SESS_SEQ ~ CLNT_GENDER,
+                          data = mall_01,
+                          exact = F)
+wilcox_05
+
+```
+
+## SESS_SEQ : Boxplot
+
+```{r code11, echo=TRUE, message=FALSE, warning=FALSE}
+library(dplyr)
+library(ggpubr)
+
+
+( g5 <- mall_01 %>%
+        sample_frac(0.0005) %>%
+        ggboxplot(
+            x = "CLNT_GENDER",
+            y = "SESS_SEQ",
+            color = "CLNT_GENDER",
+            palette = c("#00AFBB", "#E7B800"),
+            ylab = "SESS_SEQ",
+            xlab = "CLNT_GENDER"
+        ) )
+
+```
+
+
++ TOT_PAG_VIEW_CT : F-test & T-test
+
+```{r code12, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 1) f-test : 등분산성
+
+ftest_06 <- var.test( TOT_PAG_VIEW_CT ~ CLNT_GENDER,
+                      data = mall_01)
+ftest_06
+
+# 2) t-test : 집단간 차이
+
+wilcox_06 <- wilcox.test( TOT_PAG_VIEW_CT ~ CLNT_GENDER,
+                          data = mall_01,
+                          exact = F)
+wilcox_06
+
+```
+
+## TOT_PAG_VIEW_CT : Boxplot
+
+```{r code13, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(dplyr)
+library(ggpubr)
+
+( g6 <- mall_01 %>%
+        sample_frac(0.0005) %>%
+        ggboxplot(
+            x = "CLNT_GENDER",
+            y = "TOT_PAG_VIEW_CT",
+            color = "CLNT_GENDER",
+            palette = c("#00AFBB", "#E7B800"),
+            ylab = "TOT_PAG_VIEW_CT",
+            xlab = "CLNT_GENDER"
+        ) )
+
+```
+
+
++ TOT_SESS_HR_V : F-test & T-test
+
+```{r code14, eval=FALSE, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 1) f-test : 등분산성
+
+ftest_07 <- var.test( TOT_SESS_HR_V ~ CLNT_GENDER,
+                      data = mall_01)
+ftest_07
+
+# 2) t-test : 집단간 차이
+
+wilcox_07 <- wilcox.test( TOT_SESS_HR_V ~ CLNT_GENDER,
+                          data = mall_01,
+                          exact = F)
+wilcox_07
+
+```
+
+## TOT_SESS_HR_V : Boxplot
+
+```{r code15, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(dplyr)
+library(ggpubr)
+
+( g7 <- mall_01 %>%
+        sample_frac(0.0005) %>%
+        ggboxplot(
+            x = "CLNT_GENDER",
+            y = "TOT_SESS_HR_V",
+            color = "CLNT_GENDER",
+            palette = c("#00AFBB", "#E7B800"),
+            ylab = "TOT_SESS_HR_V",
+            xlab = "CLNT_GENDER"
+        ) )
+
+```
+
+
+
+
+
+
+
+
+
+
+

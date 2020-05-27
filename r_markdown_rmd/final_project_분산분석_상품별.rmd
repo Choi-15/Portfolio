@@ -1,0 +1,193 @@
+---
+title: "분산분석 : 고객별"
+author: "June"
+date: '2020 4 10 '
+output: html_document
+---
+
+
+(@) ***변수 추출 및 데이터타입 변환***
+
++ 상품 등급 생성 전처리
+
+```{r code1, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+
+library(dplyr)
+
+
+Grade <- M_ALL %>% select(PD_BUY_AM, PD_BUY_TOT)
+summary(Grade)
+
+```
+
++ 상품 가격대별 등급 생성 
+  
+  상품 단가 기준으로 등급 구분. 
+  
+  High : ￦ 135,150 이상
+  Middle : ￦ 29,000 ~ ￦ 135,150 
+  Low : ￦ 29,000 이하
+
+```{r code2, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+Grade <- Grade %>%
+  mutate(P_Grade =
+           ifelse(
+             PD_BUY_AM > 135150,
+             "High",
+             ifelse(PD_BUY_AM > 29000 & PD_BUY_AM <= 135150,
+                    "Middle", "Low")
+           ))
+
+```
+
++ 각 집단별 집계통례량 구하기
+
+```{r code3, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+attach(Grade)
+# aggregate(분석대상연속형변수, by=groupby기준변수지정, 
+#           FUN=각 그룹에 적용할 함수)
+aggregate(PD_BUY_TOT, by=list(P_Grade), FUN=mean)
+
+
+# tapply(분석대상연속형변수, 요인변수, 각 그룹에 적용할 함수)
+tapply(PD_BUY_TOT, P_Grade, mean)
+
+```
+
+
+(@) ***시각화***
+
++ 시각화 전처리
+
+```{r code4, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+Grade1 <- M_ALL %>% select(SESS_DT, PD_BUY_AM, PD_BUY_TOT)
+
+Grade1 <- Grade1 %>%
+    filter(is.na(SESS_DT) == 'FALSE')
+
+Grade1$SESS_DT <- as.Date(Grade1$SESS_DT)
+
+Grade1$month <- cut(Grade1$SESS_DT, breaks = "month")
+
+
+# 상품 구분
+Grade1 <- Grade1 %>%
+mutate(P_Grade =
+ifelse(PD_BUY_AM > 135150, "High",
+ifelse(PD_BUY_AM > 29000 & PD_BUY_AM <= 135150,
+"Middle","Low")))
+
+```
+
++ 상품별 매출 추이 (단위 : 월)
+
+```{r code5, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+library(ggpubr)
+
+Grade1 %>%
+    group_by(month, P_Grade) %>%
+    summarise(count = n()) %>%
+    
+    ggplot(aes(
+        x = month,
+        y = count,
+        group = P_Grade,
+        color = P_Grade
+    )) +
+    geom_line(lwd = 1) +
+    ggtitle("P_Grade") +
+    theme_bw() +
+    labs(x = "", y = "") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    scale_y_continuous(labels = scales::comma)
+
+```
+
+
+(@) ***ANOVA 분산***
+
+
++ 분산분석 실행
+
+```{r code6, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+
+fit.aov <- aov(PD_BUY_TOT ~ P_Grade, data = Grade)
+fit.aov
+
+anova(fit.aov)
+
+summary(fit.aov)
+
+fit.aov$coefficients
+
+```
+
++ 집단별 평균 시각화
+
+```{r code7, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(gplots)
+
+# formula 대로, 각 집단별 평균을 시각화해서 보여줌
+plotmeans(formula = PD_BUY_TOT ~ P_Grade, data = Grade)
+
+```
+
++ 다중비교 수행 - 시각화
+
+```{r code8, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+fit.mcp <- TukeyHSD(fit.aov)
+
+# fit.mcp
+# names(fit.mcp)
+
+par(las=2)
+par(mar=c(5,8,4,2))
+
+plot(fit.mcp)
+
+```
+
++ 다중비교 수행 - 분석
+
+```{r code9, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+library(multcomp)
+
+summary(glht(fit.aov, linfct = mcp(Grade = "Tukey")))
+
+```
+
++ 다중비교 수행 - 사후분석
+
+```{r code10, include=TRUE, echo=TRUE, message=FALSE, warning=FALSE}
+
+# 1) 등분산성 검정
+leveneTest(PD_BUY_TOT ~ P_Grade, data = Grade)
+
+oneway.test(PD_BUY_TOT ~ P_Grade, data = Grade)
+
+pairwise.t.test(Grade$PD_BUY_TOT, Grade$P_Grade,
+                p.adjust.method = "BH", pool.sd = FALSE)
+
+kruskal.test(PD_BUY_TOT ~ P_Grade, data = Grade)
+detach(Grade)
+```
+
+
+
+
+
+
+
+
+
+
+

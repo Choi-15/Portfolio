@@ -1,0 +1,101 @@
+---
+title: "디바이스별: 월별추이"
+author: "Seongye"
+date: '2020 4 16 '
+output: html_document
+---
+
+
+(@) ***시각화***
+
++ 시각화 전처리
+
+```{r code1, message=FALSE, warning=FALSE}
+
+M_ALL <- read.csv(file = 'C:/app/R/New_R_workspace/롯데/M_ALL.csv')
+
+library(dplyr)
+colnames(M_ALL)
+DVC <- M_ALL %>% select(SESS_ID, SESS_DT, TOT_PAG_VIEW_CT, TOT_SESS_HR_V, DVC_CTG_NM)
+
+DVC <- DVC %>%
+    filter(is.na(SESS_DT) == 'FALSE')
+
+DVC$SESS_DT <- as.Date(DVC$SESS_DT)
+
+DVC$month <- cut(DVC$SESS_DT, breaks = "month")
+
+summary(DVC)
+
+```
+
++ Device별 총 페이지 뷰
+
+```{r code2, echo=TRUE, message=FALSE, warning=FALSE}
+library(ggpubr)
+
+
+DVC %>%
+    group_by(month, DVC_CTG_NM) %>%
+    summarise(TOT_PAG_VIEW_CT_sum = sum(TOT_PAG_VIEW_CT),
+              TOT_SESS_HR_V_sum = sum(TOT_SESS_HR_V)) %>%
+    
+    ggplot(aes(
+        x = month,
+        y = TOT_PAG_VIEW_CT_sum,
+        group = DVC_CTG_NM,
+        color = DVC_CTG_NM
+    )) +
+    geom_line(lwd = 1) +
+    ggtitle("기기별 총 페이지 뷰") +
+    theme_bw() +
+    labs(x = "", y = "") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    theme(axis.text.x=element_text(angle=30, hjust=1)) +
+    scale_y_continuous(labels = scales::comma)
+
+# ----------------------------------------------------------------
+# 기기 별 총 페이지 뷰를 월별 그래프를 그렸을 때,
+# 모바일 기기가 압도적으로 높은 수치를 보이며,
+# 데스크탑과 테블릿에 비해 전체적으로 총 매출액과 비슷한 양상의 그래프를 보인다.
+# ----------------------------------------------------------------
+
+```
+
++ Device별 총 세션시간
+
+```{r code3, echo=TRUE, message=FALSE, warning=FALSE}
+library(ggpubr)
+
+DVC %>%
+    group_by(month, DVC_CTG_NM) %>%
+    summarise(TOT_PAG_VIEW_CT_sum = sum(TOT_PAG_VIEW_CT),
+              TOT_SESS_HR_V_sum = sum(TOT_SESS_HR_V)) %>%
+    
+    ggplot(aes(
+        x = month,
+        y = TOT_SESS_HR_V_sum,
+        group = DVC_CTG_NM,
+        color = DVC_CTG_NM
+    )) +
+    geom_line(lwd = 1) +
+    ggtitle("기기별 총 세션시간") +
+    theme_bw() +
+    labs(x = "", y = "") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    theme(axis.text.x=element_text(angle=30, hjust=1)) +
+    scale_y_continuous(labels = scales::comma)
+# ----------------------------------------------------------------
+# 페이지 뷰와 마찬가지로, 세션시간에서도 모바일이 가장 높으며,
+# 총 매출액 그래프와 비슷한 양상을 보인다.
+# 데스크탑은 페이지 뷰보다 세션시간에서 총 매출액 그래프와 조금 더 비슷한 
+# 추이를 보인다.
+# ----------------------------------------------------------------
+
+```
+
+
+
+
